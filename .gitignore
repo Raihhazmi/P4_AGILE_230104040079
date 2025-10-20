@@ -1,0 +1,5 @@
+node_modules
+dist
+.env
+mock_logs
+hardening_logs

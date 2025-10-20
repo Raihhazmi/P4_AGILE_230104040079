@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Mini E-Commerce API
+  version: 1.0.0
+  description: >
+    API untuk praktikum Web Service Engineering Week 4.
+    Mencakup dua endpoint utama: Orders dan Notifications.
+  contact:
+    name: Mahasiswa WSE
+    email: example@student.uin-antasari.ac.id
+
+servers:
+  - url: http://localhost:5000
+    description: Local mock server
+
+tags:
+  - name: Orders
+    description: Operasi terkait pemesanan produk
+  - name: Notifications
+    description: Operasi terkait notifikasi sistem
+
+paths:
+  /orders:
+    post:
+      tags:
+        - Orders
+      summary: Membuat order baru
+      description: Endpoint untuk membuat pesanan baru pada sistem e-commerce.
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderInput'
+            example:
+              productId: "P001"
+              quantity: 2
+      responses:
+        '201':
+          description: Order berhasil dibuat
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '400':
+          description: Payload tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Tidak memiliki otorisasi (Bearer tidak valid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /notifications:
+    get:
+      tags:
+        - Notifications
+      summary: Mendapatkan daftar notifikasi
+      description: Endpoint untuk menampilkan daftar notifikasi terbaru yang dikirim ke pengguna.
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+          description: Jumlah maksimum notifikasi yang dikembalikan
+      responses:
+        '200':
+          description: Daftar notifikasi
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationList'
+        '401':
+          description: Tidak memiliki otorisasi (Bearer tidak valid)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    OrderInput:
+      type: object
+      required:
+        - productId
+        - quantity
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+      example:
+        productId: "P001"
+        quantity: 1
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: "ORD-12345"
+        status: "created"
+        createdAt: "2025-10-20T09:00:00Z"
+
+    NotificationList:
+      type: object
+      properties:
+        notifications:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              message:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+      example:
+        notifications:
+          - id: "N001"
+            message: "Pesanan Anda telah diproses"
+            createdAt: "2025-10-20T09:05:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        code:
+          type: string
+      example:
+        message: "Unauthorized"
+        code: "401"
